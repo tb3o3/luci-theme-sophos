@@ -1,0 +1,26 @@
+{#
+ Licensed to the public under the Apache License 2.0.
+-#}
+</main>
+</div>
+
+<footer class="sophos-footer">
+	<span>OpenWrt LuCI</span>
+	<span>{{ version.luciname }} {{ version.luciversion }}</span>
+</footer>
+
+<script src="{{ media }}/menu-sophos.js"></script>
+<script>
+(function() {
+	var toggle = document.querySelector('.sophos-nav-toggle');
+	var sidebar = document.querySelector('#mainmenu');
+	if (toggle && sidebar) {
+		toggle.addEventListener('click', function() {
+			toggle.classList.toggle('active');
+			sidebar.classList.toggle('active');
+		});
+	}
+})();
+</script>
+</body>
+</html>

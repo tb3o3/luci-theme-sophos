@@ -1,0 +1,97 @@
+{#
+ Copyright 2020 Jo-Philipp Wich <jo@mein.io>
+ Licensed to the public under the Apache License 2.0.
+ Theme adaptation: Sophos-style LuCI theme.
+-#}
+{%
+	import { getuid, getspnam } from 'luci.core';
+
+	const boardinfo = ubus.call('system', 'board');
+
+	http.prepare_content('text/html; charset=UTF-8');
+-%}
+<!DOCTYPE html>
+<html lang="{{ dispatcher.lang }}">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#1f2933" />
+<link rel="stylesheet" media="screen" href="{{ media }}/cascade.css" />
+{% if (dispatched?.css): %}
+<link rel="stylesheet" href="{{ resource }}/{{ dispatched.css }}">
+{% endif %}
+<script src="{{ dispatcher.build_url('admin/translations', dispatcher.lang) }}"></script>
+<script src="{{ resource }}/cbi.js"></script>
+<title>{{ striptags(`${boardinfo.hostname ?? '?'}${dispatched?.title ? ` | ${_(dispatched.title)}` : ''}`) }} - LuCI</title>
+{% if (css): %}
+<style title="text/css">{{ css }}</style>
+{% endif %}
+</head>
+<body class="lang_{{ dispatcher.lang }}" data-page="{{ entityencode(join('-', length(ctx.request_path) ? ctx.request_path : ctx.path), true) }}">
+<p class="skiplink">
+<span id="skiplink1"><a href="#navigation">{{ _('Skip to navigation') }}</a></span>
+<span id="skiplink2"><a href="#content">{{ _('Skip to content') }}</a></span>
+</p>
+
+<header id="menubar">
+	<div class="sophos-brand">
+		<button class="sophos-nav-toggle" type="button" aria-label="{{ _('Navigation') }}">
+			<span></span><span></span><span></span>
+		</button>
+		<a class="sophos-logo" href="/">
+			<span class="sophos-logo-mark">O</span>
+			<span class="sophos-logo-text">OpenWrt</span>
+		</a>
+	</div>
+	<div class="sophos-header-title">
+		<span class="sophos-product">Firewall</span>
+		<span class="sophos-separator">/</span>
+		<span class="hostname">{{ striptags(boardinfo.hostname ?? '?') }}</span>
+	</div>
+	<div class="sophos-header-right">
+		<span class="sophos-status"><i></i> {{ _('System') }}</span>
+		<span class="distversion">{{ version.distversion }}</span>
+	</div>
+	<h2 class="navigation"><a id="navigation" name="navigation">{{ _('Navigation') }}</a></h2>
+	<span id="indicators"></span>
+</header>
+
+<div id="modemenu" style="display:none"></div>
+
+<div id="maincontainer">
+	<aside id="mainmenu">
+		<div class="sophos-sidebar-head">
+			<span class="sidebar-caption">{{ _('ADMINISTRATION') }}</span>
+		</div>
+	</aside>
+
+	<main id="maincontent">
+		<div class="sophos-pagebar">
+			<div>
+				<div class="sophos-breadcrumb">OPENWRT / LUCI</div>
+				<h1>{{ dispatched?.title ? _(dispatched.title) : _('Dashboard') }}</h1>
+			</div>
+			<div class="sophos-page-actions" id="sophos-page-actions"></div>
+		</div>
+
+		{% if (getuid() == 0 && getspnam('root')?.pwdp === '' && join('-', ctx.request_path) != 'admin-system-admin'): %}
+		<div class="alert-message warning">
+			<h4>{{ _('No password set!') }}</h4>
+			<p>{{ _('There is no password set on this router. Please configure a root password to protect the web interface.') }}</p>
+			{% if (dispatcher.lookup("admin/system/admin")): %}
+				<div class="right"><a class="btn" href="{{ dispatcher.build_url("admin/system/admin") }}">{{ _('Go to password configuration...') }}</a></div>
+			{% endif %}
+		</div>
+		{% endif %}
+
+		{% if (boardinfo.rootfs_type == "initramfs"): %}
+		<div class="alert-message warning">
+			<h4>{{ _('System running in recovery (initramfs) mode.') }}</h4>
+			<p>{{ _('No changes to settings will be stored and are lost after rebooting. This mode should only be used to install a firmware upgrade') }}</p>
+			{% if (dispatcher.lookup("admin/system/flash")): %}
+				<div class="right"><a class="btn" href="{{ dispatcher.build_url("admin/system/flash") }}">{{ _('Go to firmware upgrade...') }}</a></div>
+			{% endif %}
+		</div>
+		{% endif %}
+
+		<div id="tabmenu" style="display:none"></div>
